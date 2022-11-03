@@ -41,6 +41,14 @@ class NginxConfig
       cleaned_path.chop! if cleaned_path.end_with?("/")
       json["proxies"][loc]["path"] = cleaned_path
       json["proxies"][loc]["host"] = uri.dup.tap {|u| u.path = '' }.to_s
+      json["proxies"][loc]["headers"] ||= {}
+
+      if hash['headers']
+        hash['headers'].each do |name, value|
+          json["proxies"][loc]["headers"][name] = NginxConfigUtil.interpolate(value, ENV)
+        end
+      end
+
       %w(http https).each do |scheme|
         json["proxies"][loc]["redirect_#{scheme}"] = uri.dup.tap {|u| u.scheme = scheme }.to_s
         json["proxies"][loc]["redirect_#{scheme}"] += "/" if !uri.to_s.end_with?("/")
